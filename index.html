@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Circle and Arrow Animation</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+  }
+  #controls {
+    margin-top: 20px;
+    text-align: center;
+  }
+  button {
+    margin: 0 10px;
+    padding: 8px 16px;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="600" height="300"></canvas>
+<div id="controls">
+  <button onclick="startHit()">Hit</button>
+  <button onclick="resetGame()">Reset</button>
+</div>
+
+<script>
+// Grab the canvas element from the page and set up its 2D drawing context
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Set up a circle object with its position, size, and color
+let circle = { 
+  x: 100,                      // Position the circle near the left side of the canvas
+  y: canvas.height / 2,        // Vertically center the circle on the canvas
+  radius: 30,                  // Make the circle 30 pixels in radius
+  color: getRandomColor()      // Assign a random color to start
+};
+
+// Set up an arrow object with its initial position, size, color, and speed
+let arrow = { 
+  x: 500,                      // Position the arrow on the right side of the canvas
+  y: canvas.height / 2,        // Center the arrow vertically, like the circle
+  width: 40,                   // Width of the arrow's rectangle "body"
+  height: 5,                   // Height of the arrow's rectangle "body"
+  color: '#000',               // Make the arrow black
+  speed: 5                     // Move the arrow leftward at a rate of 5 pixels per frame
+};
+
+// Track whether the arrow has "hit" the circle or not
+let hit = false;
+
+// Variable to hold our animation ID so we can stop it later
+let animationId;
+
+// Helper function to create a random hex color
+function getRandomColor() {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16); // Generate a random color hex code
+}
+
+// Function to draw the circle on the canvas
+function drawCircle() {
+  ctx.beginPath();                      // Start a new path for drawing
+  ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2); // Draw a full circle (0 to 2π)
+  ctx.fillStyle = circle.color;         // Set the circle's fill color
+  ctx.fill();                           // Fill in the circle
+  ctx.closePath();                      // Close the path
+}
+
+// Function to draw the arrow on the canvas
+function drawArrow() {
+  ctx.beginPath();                      // Start a new path for the arrow
+  ctx.rect(arrow.x, arrow.y - arrow.height / 2, arrow.width, arrow.height); // Draw the arrow body
+  ctx.fillStyle = arrow.color;          // Set the arrow's fill color
+  ctx.fill();                           // Fill in the arrow body
+  ctx.closePath();                      // End the path for the body
+
+  // Draw the arrowhead as a triangle
+  ctx.beginPath();                      // Start a new path for the arrowhead
+  ctx.moveTo(arrow.x + arrow.width, arrow.y);                  // Starting point at the arrow's end
+  ctx.lineTo(arrow.x + arrow.width + 10, arrow.y - 5);         // Draw line to the top of the arrowhead
+  ctx.lineTo(arrow.x + arrow.width + 10, arrow.y + 5);         // Draw line to the bottom of the arrowhead
+  ctx.fill();                           // Fill in the arrowhead
+}
+
+// Function to clear the entire canvas to prepare for redrawing
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);  // Erase everything on the canvas
+}
+
+// Main animation loop that updates the arrow’s position and checks for a hit
+function update() {
+  clearCanvas();              // Wipe the canvas clean before redrawing
+  drawCircle();               // Draw the stationary circle
+  drawArrow();                // Draw the arrow at its current position
+
+  if (!hit) {                 // If we haven’t hit the circle yet…
+    arrow.x -= arrow.speed;   // Move the arrow left by its speed
+
+    // Check if the arrow has reached the circle's edge
+    if (arrow.x <= circle.x + circle.radius) {  
+      hit = true;                             // Mark it as a hit to stop further movement
+      circle.color = getRandomColor();        // Change the circle's color to show the hit
+      clearCanvas();                          // Clear the canvas to refresh
+      drawCircle();                           // Draw the circle with its new color
+      drawArrow();                            // Draw the arrow in its final position
+      cancelAnimationFrame(animationId);      // Stop the animation
+    } else {
+      // Keep the animation going by scheduling the next frame
+      animationId = requestAnimationFrame(update);
+    }
+  }
+}
+
+// Function to start the arrow’s movement when the "Hit" button is clicked
+function startHit() {
+  if (!hit) {                        // Only start moving if we haven’t hit the circle yet
+    animationId = requestAnimationFrame(update);  // Kick off the animation loop
+  }
+}
+
+// Function to reset everything when the "Reset" button is clicked
+function resetGame() {
+  hit = false;                       // Reset the hit status to allow movement
+  circle.color = getRandomColor();   // Pick a new random color for the circle
+  arrow.x = 500;                     // Move the arrow back to its starting position on the right
+  clearCanvas();                     // Clear the canvas to reset visuals
+  drawCircle();                      // Draw the circle with its new color
+  drawArrow();                       // Draw the arrow back in its starting position
+}
+
+// Draw everything for the first time when the page loads
+drawCircle();
+drawArrow();
+
+
+</script>
+
+</body>
+</html>
